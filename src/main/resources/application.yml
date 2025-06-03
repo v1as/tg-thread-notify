@@ -1,0 +1,22 @@
+spring:
+  application.name: notification
+  datasource:
+    url: jdbc:h2:file:./notification_h2_db
+    username: h2user
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+
+tg:
+  bot:
+    token: ${TG_BOT_TOKEN}
+    username: ${TG_BOT_USERNAME}
+
+logging:
+  pattern:
+    console: "%-30(%d{dd.MM.yy HH:mm:ss.SSS} [%thread]){faint} %-5level  %clr(%-40.40logger{39}){cyan} %X{CHAT}:%X{USER}: %msg%n"
+  level:
+    root: info
+    ru.v1as: debug
