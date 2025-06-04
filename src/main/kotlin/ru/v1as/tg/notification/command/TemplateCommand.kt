@@ -10,13 +10,13 @@ import ru.v1as.tg.notification.jpa.enitity.ChatEntity
 import ru.v1as.tg.notification.model.NotificationTemplateDto
 import ru.v1as.tg.notification.model.TopicTemplateDto
 import ru.v1as.tg.notification.service.NotificationService
-import ru.v1as.tg.notification.tg.message.replySendMessage
 import ru.v1as.tg.starter.TgSender
 import ru.v1as.tg.starter.model.TgChat
 import ru.v1as.tg.starter.model.base.TgChatWrapper
 import ru.v1as.tg.starter.model.base.TgUserWrapper
 import ru.v1as.tg.starter.update.command.AbstractCommandHandler
 import ru.v1as.tg.starter.update.command.CommandRequest
+import ru.v1as.tg.starter.update.replySendMessage
 import ru.v1as.tg.starter.update.request.RequestUpdateHandler
 import ru.v1as.tg.starter.update.request.replyOnMessageRequest
 

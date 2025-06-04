@@ -17,17 +17,25 @@ java {
 
 repositories {
 	mavenCentral()
+	maven {
+		url = uri("https://maven.pkg.github.com/v1as/*")
+		credentials {
+			username = System.getenv("GITHUB_USERNAME")
+			password = System.getenv("GITHUB_TOKEN")
+		}
+	}
 	mavenLocal()
 }
 
 dependencies {
-	implementation("com.github.v1as:tg-bot-spring-boot-starter:0.0.4-1")
+	implementation("com.github.v1as:tg-bot-spring-boot-starter:0.0.4")
 
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-mustache")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	runtimeOnly("com.h2database:h2")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

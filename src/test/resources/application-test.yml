@@ -1,0 +1,5 @@
+tg:
+  bot:
+    token: test_bot_token
+    username: test_bot
+    runnable: false

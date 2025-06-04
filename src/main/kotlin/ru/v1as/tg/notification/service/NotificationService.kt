@@ -24,7 +24,7 @@ const val TEMPLATE_ID_PARAM = "template"
 private fun error(errorText: String): Map<String, String> = mapOf("error" to errorText)
 
 fun compileText(text: List<String>, params: Map<String, String>): String {
-    return Mustache.compiler().compile(text.joinToString("\n")).execute(params)
+    return Mustache.compiler().compile(text.joinToString("\n")).execute(params).trimIndent()
 }
 
 @Service
@@ -57,10 +57,11 @@ class NotificationService(
                     .toModel()
             val topicEntities = topicDao.findByChatId(chatEntity.id!!)
             computeDestination(template, chatEntity.id!!, topicEntities, params)?.let {
+                val text = addPrefix(it.prefix, template.text)
                 sender.execute(
                     sendMessage {
                         chatId(it.chatId)
-                        text(compileText(template.text, params))
+                        text(compileText(text, params))
                         it.topicId?.let { messageThreadId(it) }
                     }
                 )
@@ -71,6 +72,10 @@ class NotificationService(
         }
         return mapOf("status" to "OK")
     }
+
+    private fun addPrefix(prefix: String?, texts: List<String>): List<String> =
+        prefix?.takeIf { it.isNotBlank() }?.let { texts.toMutableList().apply { addFirst(it) } }
+            ?: texts
 
     fun saveTemplate(chat: ChatEntity, templateDto: NotificationTemplateDto): List<String> {
         val template =
@@ -85,7 +90,7 @@ class NotificationService(
     }
 }
 
-data class TgDestination(val chatId: Long, val topicId: Int?, val prefix: String?)
+data class TgDestination(val chatId: Long, val topicId: Int?, val prefix: String? = null)
 
 fun computeDestination(
     template: NotificationTemplate,
@@ -93,29 +98,29 @@ fun computeDestination(
     topicEntities: List<ChatTopicEntity>,
     params: Map<String, String>,
 ): TgDestination? {
-    for (template in template.topics) {
-        if (template.topicId != null) {
-            return TgDestination(chatId, template.topicId, template.prefix)
+    for (templateItem in template.topics) {
+        if (templateItem.topicId != null) {
+            return TgDestination(chatId, templateItem.topicId, templateItem.prefix)
         }
-        val matchParamName = template.matchParamName ?: continue
+        val matchParamName = templateItem.matchParamName ?: continue
         val matchId =
             matchParamName
                 .let { params[it] }
-                ?.let { template.matchParamRegexp?.matcher(it) }
+                ?.let { templateItem.matchParamRegexp?.matcher(it) }
                 ?.takeIf { it.matches() }
                 ?.group(1)
-        if (matchId == null || template.matchTopicTitleRegexp == null) {
+        if (matchId == null || templateItem.matchTopicTitleRegexp == null) {
             continue
         }
 
         for (topicEntity in topicEntities) {
             topicEntity.title
-                ?.let { template.matchTopicTitleRegexp.matcher(it) }
+                ?.let { templateItem.matchTopicTitleRegexp.matcher(it) }
                 ?.takeIf { it.matches() }
                 ?.group(1)
                 ?.takeIf { matchId == it }
                 ?.let {
-                    return TgDestination(chatId, topicEntity.id, template.prefix)
+                    return TgDestination(chatId, topicEntity.id, templateItem.prefix)
                 }
         }
     }
