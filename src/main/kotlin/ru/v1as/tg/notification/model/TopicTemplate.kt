@@ -4,9 +4,8 @@ import java.util.regex.Pattern
 
 class TopicTemplate(
     val topicId: Int?,
-    val matchParamName: Pattern?,
+    val matchParamName: String?,
     val matchParamRegexp: Pattern?,
     val matchTopicTitleRegexp: Pattern?,
-    val matchTopicFirstMessageRegexp: Pattern?,
-    val dto: TopicTemplateDto,
+    val prefix: String?,
 )

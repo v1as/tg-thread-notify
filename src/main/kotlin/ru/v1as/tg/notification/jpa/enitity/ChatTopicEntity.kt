@@ -12,6 +12,7 @@ data class ChatTopicEntity(
     @Id var id: Int? = null,
     @Id @ManyToOne var chat: ChatEntity? = null,
     var title: String? = null,
+    var enabled: Boolean? = true,
 )
 
 data class ChatTopicId(val id: Int = 0, val chat: Long = 0) : Serializable

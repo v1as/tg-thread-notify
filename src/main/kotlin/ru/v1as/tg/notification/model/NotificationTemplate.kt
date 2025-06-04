@@ -7,4 +7,5 @@ data class NotificationTemplate(
     val sendOnUndefinedTopic: Boolean,
     val warnInText: Boolean,
     val topics: List<TopicTemplate>,
+    val dto: NotificationTemplateDto,
 )

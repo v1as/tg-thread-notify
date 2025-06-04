@@ -7,16 +7,15 @@ data class TopicTemplateDto(
     var matchParamName: String? = null,
     var matchParamRegexp: String? = null,
     var matchTopicTitleRegexp: String? = null,
-    var matchTopicFirstMessageRegexp: String? = null,
+    var prefix: String? = null,
 ) {
     fun toModel(): TopicTemplate {
         return TopicTemplate(
             topicId,
-            matchParamName?.let { Pattern.compile(it) },
+            matchParamName,
             matchParamRegexp?.let { Pattern.compile(it) },
             matchTopicTitleRegexp?.let { Pattern.compile(it) },
-            matchTopicFirstMessageRegexp?.let { Pattern.compile(it) },
-            this,
+            prefix,
         )
     }
 }
