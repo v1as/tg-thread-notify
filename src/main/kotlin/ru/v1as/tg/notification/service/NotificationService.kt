@@ -21,7 +21,8 @@ import kotlin.jvm.optionals.getOrNull
 const val CHAT_ID_PARAM = "chat"
 const val TEMPLATE_ID_PARAM = "template"
 
-private fun error(errorText: String): Map<String, String> = mapOf("error" to errorText)
+private fun resp(message: String, status: String): Map<String, String> =
+    mapOf("message" to message, "status" to status)
 
 fun compileText(text: List<String>, params: Map<String, String>): String {
     return Mustache.compiler().compile(text.joinToString("\n")).execute(params).trimIndent()
@@ -42,12 +43,12 @@ class NotificationService(
         val chatParam = params[CHAT_ID_PARAM]
         val chatEntity =
             chatParam?.toLongOrNull()?.let { chatDao.findById(it) }?.getOrNull()
-                ?: return error("Wrong chat param: $chatParam")
+                ?: return resp("Wrong chat param: $chatParam", "400")
         val templateId = params[TEMPLATE_ID_PARAM]
         val templateEntity =
             templateId?.let {
                 templateDao.findById(ChatTemplateId(it, chatEntity.id!!)).getOrNull()
-            } ?: return error("No template found: $templateId")
+            } ?: return resp("No template found: $templateId", "400")
 
         try {
             val template =
@@ -56,21 +57,22 @@ class NotificationService(
                     .readValue(templateEntity.templateYaml, NotificationTemplateDto::class.java)
                     .toModel()
             val topicEntities = topicDao.findByChatId(chatEntity.id!!)
-            computeDestination(template, chatEntity.id!!, topicEntities, params)?.let {
+            return computeDestination(template, chatEntity.id!!, topicEntities, params)?.let {
                 val text = addPrefix(it.prefix, template.text)
-                sender.execute(
-                    sendMessage {
-                        chatId(it.chatId)
-                        text(compileText(text, params))
-                        it.topicId?.let { messageThreadId(it) }
-                    }
-                )
-            }
+                val message =
+                    sender.execute(
+                        sendMessage {
+                            chatId(it.chatId)
+                            text(compileText(text, params))
+                            it.topicId?.let { messageThreadId(it) }
+                        }
+                    )
+                resp("Message sent: ${message?.messageId}", "200")
+            } ?: resp("Message was not sent", "SKIPPED")
         } catch (e: Exception) {
             logger.error(e) { "Error while notification processing $params" }
-            return error(e.message ?: "Unexpected error")
+            return resp(e.message ?: "Unexpected error", "500")
         }
-        return mapOf("status" to "OK")
     }
 
     private fun addPrefix(prefix: String?, texts: List<String>): List<String> =
