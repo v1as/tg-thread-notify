@@ -13,22 +13,23 @@ import ru.v1as.tg.starter.update.sendMessage
 @Component
 class StartCommand(val tgSender: TgSender, val chatDao: ChatDao) : AbstractCommandHandler("start") {
 
-  override fun handle(command: CommandRequest, user: TgUserWrapper, chat: TgChatWrapper) {
+    override fun handle(command: CommandRequest, user: TgUserWrapper, chat: TgChatWrapper) {
 
-    var text =
-        if (chat.isUserChat()) {
-          "Hello, ${user.usernameOrFullName()}!"
-        } else {
-          var text = "Chat with id=${chat.getId()} registered"
-          command.message.messageThreadId?.let { text += "\nTopic with id=$it registered" }
-          chatDao.findById(chat.getId()).orElseGet { chatDao.save(ChatEntity(chat.getId())) }
-          text
-        }
-    tgSender.execute(
-        sendMessage {
-          chatId(chat.getId())
-          text(text)
-          command.message.messageThreadId?.let { messageThreadId(it) }
-        })
-  }
+        var text =
+            if (chat.isUserChat()) {
+                "Hello, ${user.usernameOrFullName()}!"
+            } else {
+                var text = "Chat with id=${chat.getId()} registered"
+                command.message.messageThreadId?.let { text += "\nTopic with id=$it registered" }
+                chatDao.findById(chat.getId()).orElseGet { chatDao.save(ChatEntity(chat.getId())) }
+                text
+            }
+        tgSender.execute(
+            sendMessage {
+                chatId(chat.getId())
+                text(text)
+                command.message.messageThreadId?.let { messageThreadId(it) }
+            }
+        )
+    }
 }
