@@ -50,6 +50,10 @@ class NotificationService(
                 templateDao.findById(ChatTemplateId(it, chatEntity.id!!)).getOrNull()
             } ?: return resp("No template found: $templateId", "400")
 
+        if (!chatEntity.enabled) {
+            return resp("Chat notification disabled", "200")
+        }
+
         try {
             val template =
                 mapper
@@ -57,14 +61,18 @@ class NotificationService(
                     .readValue(templateEntity.templateYaml, NotificationTemplateDto::class.java)
                     .toModel()
             val topicEntities = topicDao.findByChatId(chatEntity.id!!)
-            return computeDestination(template, chatEntity.id!!, topicEntities, params)?.let {
+            val destination = computeDestination(template, chatEntity.id!!, topicEntities, params)
+            if (destination?.topic?.enabled == false) {
+                return resp("Chat topic notification disabled", "200")
+            }
+            return destination?.let {
                 val text = addPrefix(it.prefix, template.text)
                 val message =
                     sender.execute(
                         sendMessage {
                             chatId(it.chatId)
                             text(compileText(text, params))
-                            it.topicId?.let { messageThreadId(it) }
+                            it.topic?.let { messageThreadId(it.id) }
                         }
                     )
                 resp("Message sent: ${message?.messageId}", "200")
@@ -92,7 +100,7 @@ class NotificationService(
     }
 }
 
-data class TgDestination(val chatId: Long, val topicId: Int?, val prefix: String? = null)
+data class TgDestination(val chatId: Long, val topic: ChatTopicEntity?, val prefix: String? = null)
 
 fun computeDestination(
     template: NotificationTemplate,
@@ -100,9 +108,11 @@ fun computeDestination(
     topicEntities: List<ChatTopicEntity>,
     params: Map<String, String>,
 ): TgDestination? {
+    val id2TopicEntity = topicEntities.groupBy { it.id }
     for (templateItem in template.topics) {
         if (templateItem.topicId != null) {
-            return TgDestination(chatId, templateItem.topicId, templateItem.prefix)
+            val topicEntity = id2TopicEntity[templateItem.topicId]
+            return TgDestination(chatId, topicEntity?.firstOrNull(), templateItem.prefix)
         }
         val matchParamName = templateItem.matchParamName ?: continue
         val matchId =
@@ -122,7 +132,7 @@ fun computeDestination(
                 ?.group(1)
                 ?.takeIf { matchId == it }
                 ?.let {
-                    return TgDestination(chatId, topicEntity.id, templateItem.prefix)
+                    return TgDestination(chatId, topicEntity, templateItem.prefix)
                 }
         }
     }
