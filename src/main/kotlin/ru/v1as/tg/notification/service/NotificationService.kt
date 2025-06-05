@@ -25,7 +25,11 @@ private fun resp(message: String, status: String): Map<String, String> =
     mapOf("message" to message, "status" to status)
 
 fun compileText(text: List<String>, params: Map<String, String>): String {
-    return Mustache.compiler().compile(text.joinToString("\n")).execute(params).trimIndent()
+    return Mustache.compiler()
+        .defaultValue("")
+        .compile(text.joinToString("\n"))
+        .execute(params)
+        .trimIndent()
 }
 
 @Service

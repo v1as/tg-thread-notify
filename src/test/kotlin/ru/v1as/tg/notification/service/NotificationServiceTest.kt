@@ -22,6 +22,13 @@ class NotificationServiceTest {
     }
 
     @Test
+    fun shouldCompileWithUndefinedParam() {
+        val compiled =
+            compileText(listOf("Hi, {{username}}", "It's {{day}}!"), mapOf("username" to "Bob"))
+        assertThat(compiled).contains("Hi, Bob", "It's !")
+    }
+
+    @Test
     fun shouldMatchTemplate() {
         val template =
             template(TopicTemplateDto(null, "branch", ".*(TM-[0-9]+).*", "^(TM-[0-9]+).*"))
