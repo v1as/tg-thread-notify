@@ -3,6 +3,7 @@ package ru.v1as.tg.notification.service
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.samskivert.mustache.Mustache
+import kotlin.jvm.optionals.getOrNull
 import mu.KLogging
 import org.springframework.stereotype.Service
 import ru.v1as.tg.notification.jpa.ChatDao
@@ -16,7 +17,6 @@ import ru.v1as.tg.notification.model.NotificationTemplate
 import ru.v1as.tg.notification.model.NotificationTemplateDto
 import ru.v1as.tg.starter.TgSender
 import ru.v1as.tg.starter.update.sendMessage
-import kotlin.jvm.optionals.getOrNull
 
 const val CHAT_ID_PARAM = "chat"
 const val TEMPLATE_ID_PARAM = "template"
@@ -110,10 +110,18 @@ fun computeDestination(
 ): TgDestination? {
     val id2TopicEntity = topicEntities.groupBy { it.id }
     for (templateItem in template.topics) {
-        if (templateItem.topicId != null) {
-            val topicEntity = id2TopicEntity[templateItem.topicId]
-            return TgDestination(chatId, topicEntity?.firstOrNull(), templateItem.prefix)
+        val fixedTopicEntity =
+            templateItem.topicId?.let {
+                id2TopicEntity[it] ?: throw IllegalStateException("Unknown topicId $it")
+            }
+        if (
+            fixedTopicEntity != null &&
+                templateItem.matchParamRegexp == null &&
+                templateItem.matchTopicTitleRegexp == null
+        ) {
+            return TgDestination(chatId, fixedTopicEntity.first(), templateItem.prefix)
         }
+
         val matchParamName = templateItem.matchParamName ?: continue
         val matchId =
             matchParamName
@@ -121,6 +129,10 @@ fun computeDestination(
                 ?.let { templateItem.matchParamRegexp?.matcher(it) }
                 ?.takeIf { it.matches() }
                 ?.group(1)
+
+        if (matchId != null && fixedTopicEntity != null) {
+            return TgDestination(chatId, fixedTopicEntity.first(), templateItem.prefix)
+        }
         if (matchId == null || templateItem.matchTopicTitleRegexp == null) {
             continue
         }
