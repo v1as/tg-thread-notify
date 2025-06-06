@@ -69,7 +69,9 @@ class TemplateCommand(
                 yamlReader.readValue(templateBody, NotificationTemplateDto::class.java)
             val template = templateDto.toModel()
             notificationService.saveTemplate(chatEntity, templateDto)
-            tgSender.execute(message.replySendMessage { text("Template ${template.id} saved") })
+            tgSender.execute(
+                message.replySendMessage { text("#NotificationTemplate '${template.id}' saved") }
+            )
         } catch (e: Exception) {
             tgSender.message(chat, "Error: ${e.message}")
             logger.warn("Error while template save", e)

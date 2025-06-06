@@ -3,7 +3,7 @@ spring:
   datasource:
     url: jdbc:h2:file:./notification_h2_db
     username: h2user
-    password:
+    password: ${H2_PASSWORD}
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
@@ -13,6 +13,12 @@ tg:
   bot:
     token: ${TG_BOT_TOKEN}
     username: ${TG_BOT_USERNAME}
+    proxy:
+      host: ${TG_PROXY_HOST}
+      port: ${TG_PROXY_PORT}
+      username: ${TG_PROXY_USER}
+      password: ${TG_PROXY_PASS}
+      type: ${TG_PROXY_TYPE}
 
 logging:
   pattern:

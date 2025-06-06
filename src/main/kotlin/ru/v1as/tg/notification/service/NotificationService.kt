@@ -3,7 +3,6 @@ package ru.v1as.tg.notification.service
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.samskivert.mustache.Mustache
-import kotlin.jvm.optionals.getOrNull
 import mu.KLogging
 import org.springframework.stereotype.Service
 import ru.v1as.tg.notification.jpa.ChatDao
@@ -17,6 +16,7 @@ import ru.v1as.tg.notification.model.NotificationTemplate
 import ru.v1as.tg.notification.model.NotificationTemplateDto
 import ru.v1as.tg.starter.TgSender
 import ru.v1as.tg.starter.update.sendMessage
+import kotlin.jvm.optionals.getOrNull
 
 const val CHAT_ID_PARAM = "chat"
 const val TEMPLATE_ID_PARAM = "template"
@@ -65,10 +65,16 @@ class NotificationService(
                     .readValue(templateEntity.templateYaml, NotificationTemplateDto::class.java)
                     .toModel()
             val topicEntities = topicDao.findByChatId(chatEntity.id!!)
-            val destination = computeDestination(template, chatEntity.id!!, topicEntities, params)
+            var destination = computeDestination(template, chatEntity.id!!, topicEntities, params)
             if (destination?.topic?.enabled == false) {
                 return resp("Chat topic notification disabled", "200")
             }
+            destination =
+                destination
+                    ?: template.sendOnUndefinedTopic
+                        .takeIf { it }
+                        ?.let { TgDestination(chatEntity.id!!, null, "Undefined topic") }
+
             return destination?.let {
                 val text = addPrefix(it.prefix, template.text)
                 val message =

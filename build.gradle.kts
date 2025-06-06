@@ -28,7 +28,7 @@ repositories {
 }
 
 dependencies {
-	implementation("com.github.v1as:tg-bot-spring-boot-starter:0.0.4")
+	implementation("com.github.v1as:tg-bot-spring-boot-starter:0.0.6")
 
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")

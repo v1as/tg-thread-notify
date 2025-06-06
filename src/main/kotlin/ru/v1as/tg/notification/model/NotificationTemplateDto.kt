@@ -4,7 +4,6 @@ data class NotificationTemplateDto(
     var id: String? = null,
     var text: List<String> = emptyList(),
     var topics: List<TopicTemplateDto> = emptyList(),
-    var format: TextFormat = TextFormat.TEXT,
     var sendOnUndefinedTopic: Boolean = false,
     var warnInText: Boolean = true,
 ) {
@@ -13,9 +12,7 @@ data class NotificationTemplateDto(
         return NotificationTemplate(
             id ?: throw IllegalArgumentException("Topic id cannot be null"),
             text,
-            format,
             sendOnUndefinedTopic,
-            warnInText,
             topicModel,
             this,
         )
