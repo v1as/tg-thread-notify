@@ -7,7 +7,7 @@ import ru.v1as.tg.starter.model.base.TgChatWrapper
 import ru.v1as.tg.starter.model.base.TgUserWrapper
 import ru.v1as.tg.starter.update.command.AbstractCommandHandler
 import ru.v1as.tg.starter.update.command.CommandRequest
-import ru.v1as.tg.starter.update.sendMessage
+import ru.v1as.tg.starter.update.replySendMessage
 
 @Component
 class StartCommand(val tgSender: TgSender, val chatService: ChatService) :
@@ -16,12 +16,6 @@ class StartCommand(val tgSender: TgSender, val chatService: ChatService) :
     override fun handle(command: CommandRequest, user: TgUserWrapper, chat: TgChatWrapper) {
         val synced = chatService.syncChatAndTopic(command.message)
 
-        tgSender.execute(
-            sendMessage {
-                chatId(chat.getId())
-                text(synced.message)
-                command.message.messageThreadId?.let { messageThreadId(it) }
-            }
-        )
+        command.message.replySendMessage { text(synced.message) }.let { tgSender.execute(it) }
     }
 }
