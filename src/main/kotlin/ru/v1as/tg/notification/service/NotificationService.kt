@@ -86,7 +86,7 @@ class NotificationService(
                         }
                     )
                 resp("Message sent: ${message?.messageId}", "200")
-            } ?: resp("Message was not sent", "SKIPPED")
+            } ?: resp("Message was not sent", "200")
         } catch (e: Exception) {
             logger.error(e) { "Error while notification processing $params" }
             return resp(e.message ?: "Unexpected error", "500")
@@ -119,6 +119,9 @@ fun computeDestination(
     params: Map<String, String>,
 ): TgDestination? {
     val id2TopicEntity = topicEntities.groupBy { it.id }
+    if (template.topics.isEmpty()) {
+        return TgDestination(chatId, null, null)
+    }
     for (templateItem in template.topics) {
         val fixedTopicEntity =
             templateItem.topicId?.let {
