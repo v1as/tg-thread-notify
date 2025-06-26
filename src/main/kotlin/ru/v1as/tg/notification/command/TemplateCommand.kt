@@ -73,7 +73,7 @@ class TemplateCommand(
                 message.replySendMessage { text("#NotificationTemplate '${template.id}' saved") }
             )
         } catch (e: Exception) {
-            tgSender.message(chat, "Error: ${e.message}")
+            tgSender.execute(message.replySendMessage { text("Error: ${e.message}") })
             logger.warn("Error while template save", e)
         }
     }
