@@ -5,6 +5,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.samskivert.mustache.Mustache
 import mu.KLogging
 import org.springframework.stereotype.Service
+import org.telegram.telegrambots.meta.api.methods.ParseMode
 import ru.v1as.tg.notification.jpa.ChatDao
 import ru.v1as.tg.notification.jpa.ChatTopicDao
 import ru.v1as.tg.notification.jpa.NotificationTemplateDao
@@ -24,9 +25,10 @@ const val TEMPLATE_ID_PARAM = "template"
 private fun resp(message: String, status: String): Map<String, String> =
     mapOf("message" to message, "status" to status)
 
-fun compileText(text: List<String>, params: Map<String, String>): String {
+fun compileText(text: List<String>, params: Map<String, String>, escapeHtml: Boolean): String {
     return Mustache.compiler()
         .defaultValue("")
+        .escapeHTML(escapeHtml)
         .compile(text.joinToString("\n"))
         .execute(params)
         .trimIndent()
@@ -81,8 +83,11 @@ class NotificationService(
                     sender.execute(
                         sendMessage {
                             chatId(it.chatId)
-                            text(compileText(text, params))
+                            text(compileText(text, params, template.html))
                             it.topic?.let { messageThreadId(it.id) }
+                            if (template.html) {
+                                parseMode(ParseMode.HTML)
+                            }
                         }
                     )
                 resp("Message sent: ${message?.messageId}", "200")
@@ -129,8 +134,8 @@ fun computeDestination(
             }
         if (
             fixedTopicEntity != null &&
-                templateItem.matchParamRegexp == null &&
-                templateItem.matchTopicTitleRegexp == null
+            templateItem.matchParamRegexp == null &&
+            templateItem.matchTopicTitleRegexp == null
         ) {
             return TgDestination(chatId, fixedTopicEntity.first(), templateItem.prefix)
         }

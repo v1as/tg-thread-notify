@@ -4,6 +4,7 @@ data class NotificationTemplate(
     val id: String,
     val text: List<String>,
     val sendOnUndefinedTopic: Boolean,
+    val html: Boolean,
     val topics: List<TopicTemplate>,
     val dto: NotificationTemplateDto,
 )
