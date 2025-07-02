@@ -25,7 +25,7 @@ const val TEMPLATE_ID_PARAM = "template"
 private fun resp(message: String, status: String): Map<String, String> =
     mapOf("message" to message, "status" to status)
 
-fun compileText(text: List<String>, params: Map<String, String>, escapeHtml: Boolean): String {
+fun compileText(text: List<String>, params: Map<String, String>, escapeHtml: Boolean = true): String {
     return Mustache.compiler()
         .defaultValue("")
         .escapeHTML(escapeHtml)
@@ -141,20 +141,21 @@ fun computeDestination(
         }
 
         val matchParamName = templateItem.matchParamName ?: continue
-        val matchId =
-            matchParamName
-                .let { params[it] }
-                ?.let { templateItem.matchParamRegexp?.matcher(it) }
-                ?.takeIf { it.matches() }
-                ?.group(1)
+        val paramMatcher = matchParamName
+            .let { params[it] }
+            ?.let { templateItem.matchParamRegexp?.matcher(it) }
+        val paramMatched = paramMatcher?.matches() ?: false
 
-        if (matchId != null && fixedTopicEntity != null) {
+
+
+        if (paramMatched && fixedTopicEntity != null) {
             return TgDestination(chatId, fixedTopicEntity.first(), templateItem.prefix)
         }
-        if (matchId == null || templateItem.matchTopicTitleRegexp == null) {
+        if (!paramMatched || templateItem.matchTopicTitleRegexp == null) {
             continue
         }
 
+        val matchId = paramMatcher?.group(1)
         for (topicEntity in topicEntities) {
             topicEntity.title
                 ?.let { templateItem.matchTopicTitleRegexp.matcher(it) }
