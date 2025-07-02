@@ -33,7 +33,10 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-mustache")
-	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-web") {
+		exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
+	}
+	implementation("org.springframework.boot:spring-boot-starter-undertow")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
