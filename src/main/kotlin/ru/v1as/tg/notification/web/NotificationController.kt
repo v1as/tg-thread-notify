@@ -17,11 +17,12 @@ class NotificationController(val notificationService: NotificationService) {
 
     @GetMapping
     fun getLoginDetails(
-        @RequestParam allParams: Map<String, String>
+        @RequestParam allParams: Map<String, String>,
+        @RequestParam(defaultValue = "false") silent: Boolean
     ): ResponseEntity<Map<String, String>> {
-        val body = notificationService.notify(allParams)
+        val body = notificationService.notify(allParams, silent)
         val status = HttpStatusCode.valueOf(body["status"]?.toInt() ?: 500)
-        logger.info("Notification request: $allParams, finished with response: $body")
+        logger.info("Notification request: $allParams, silent=$silent, finished with response: $body")
         return ResponseEntity(body, status)
     }
 }
