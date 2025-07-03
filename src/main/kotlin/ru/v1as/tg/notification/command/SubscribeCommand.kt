@@ -47,8 +47,7 @@ class SubscribeCommand(
                 chat_id
                 template_id
                 regexp_pattern
-                ```
-            """
+                ```"""
                         .trimIndent()
                 )
             }
@@ -64,7 +63,7 @@ class SubscribeCommand(
             if (lines.size != 3) {
                 tgSender.execute(
                     message.replySendMessage {
-                        text("❌ Неверный формат! Нужны 3 строки: chat_id, template_id, regexp")
+                        text("❌ Неверный формат, нужны 3 строки: chat_id, template_id, regexp")
                     }
                 )
                 return
