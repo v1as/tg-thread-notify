@@ -16,6 +16,7 @@ import ru.v1as.tg.starter.update.command.CommandRequest
 import ru.v1as.tg.starter.update.replySendMessage
 import ru.v1as.tg.starter.update.request.RequestUpdateHandler
 import ru.v1as.tg.starter.update.request.replyOnMessageRequest
+import ru.v1as.tg.starter.update.sendMessage
 import kotlin.jvm.optionals.getOrNull
 
 @Component
@@ -113,10 +114,17 @@ class SubscribeCommand(
                         chatId = chatId,
                         templateId = templateId
                     )
+            val firstTime = subscription.id == null
             subscription.regexp = regexp
             subscriptionDao.save(subscription)
 
-            tgSender.execute(message.replySendMessage { text("✅ Подписка успешно создана") })
+            tgSender.executeAsync(message.replySendMessage { text("✅ Подписка успешно создана") })
+            if (firstTime) {
+                tgSender.executeAsync(sendMessage {
+                    chatId(chatId)
+                    text("👀 ${user.usernameOrFullName()} подписался на уведомления шаблона $templateId")
+                })
+            }
 
             logger.info(
                 "User $userId subscribed to chat $chatId, template $templateId with regexp: $regexp"
